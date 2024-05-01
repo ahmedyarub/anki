@@ -17,11 +17,13 @@ from aqt.deckoptions import display_options_for_deck_id
 from aqt.operations import QueryOp
 from aqt.operations.deck import (
     add_deck_dialog,
+    hide_deck,
     remove_decks,
     rename_deck,
     reparent_decks,
     set_current_deck,
     set_deck_collapsed,
+    unhide_deck,
 )
 from aqt.qt import *
 from aqt.sound import av_player
@@ -74,10 +76,14 @@ class DeckBrowser:
         self._refresh_needed = False
 
     def show(self) -> None:
+        gui_hooks.deck_browser_needs_update.append(self.on_deck_browser_needs_update)
         av_player.stop_and_clear_queue()
         self.web.set_bridge_command(self._linkHandler, self)
         # redraw top bar for theme change
         self.mw.toolbar.redraw()
+        self.refresh()
+
+    def on_deck_browser_needs_update(self) -> None:
         self.refresh()
 
     def refresh(self) -> None:
@@ -159,7 +165,7 @@ class DeckBrowser:
 
             def get_data(col: Collection) -> RenderData:
                 return RenderData(
-                    tree=col.sched.deck_due_tree(),
+                    tree=col.sched.deck_due_tree(aqt.mw.pm.show_hidden_decks()),
                     current_deck_id=col.decks.get_current_id(),
                     studied_today=col.studied_today(),
                     sched_upgrade_required=not col.v3_scheduler(),
@@ -315,6 +321,14 @@ class DeckBrowser:
         qconnect(a.triggered, lambda b, did=did: self._export(DeckId(int(did))))
         a = m.addAction(tr.actions_delete())
         qconnect(a.triggered, lambda b, did=did: self._delete(DeckId(int(did))))
+
+        if self.mw.col.decks.get(did)["hidden"]:
+            a = m.addAction(tr.actions_unhide())
+            qconnect(a.triggered, lambda b, did=did: self._unhide(DeckId(int(did))))
+        else:
+            a = m.addAction(tr.actions_hide())
+            qconnect(a.triggered, lambda b, did=did: self._hide(DeckId(int(did))))
+
         gui_hooks.deck_browser_will_show_options_menu(m, int(did))
         m.popup(QCursor.pos())
 
@@ -362,6 +376,14 @@ class DeckBrowser:
         remove_decks(
             parent=self.mw, deck_ids=[did], deck_name=deck_name
         ).run_in_background()
+
+    def _hide(self, did: DeckId) -> None:
+        hide_deck(parent=self.mw, deck_id=did).run_in_background()
+        self.refresh()
+
+    def _unhide(self, did: DeckId) -> None:
+        unhide_deck(parent=self.mw, deck_id=did).run_in_background()
+        self.refresh()
 
     # Top buttons
     ######################################################################

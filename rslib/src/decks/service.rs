@@ -67,7 +67,7 @@ impl crate::services::DecksService for Collection {
         } else {
             Some(TimestampSecs(input.now))
         };
-        self.deck_tree(now)
+        self.deck_tree(now, input.show_hidden_decks)
     }
 
     fn deck_tree_legacy(&mut self) -> error::Result<generic::Json> {
@@ -182,6 +182,20 @@ impl crate::services::DecksService for Collection {
             Some(input.new_parent.into())
         };
         self.reparent_decks(&deck_ids, new_parent).map(Into::into)
+    }
+
+    fn hide_deck(
+        &mut self,
+        input: anki_proto::decks::HideDeckRequest,
+    ) -> error::Result<anki_proto::collection::OpChanges> {
+        self.hide_deck(input.deck_id.into()).map(Into::into)
+    }
+
+    fn unhide_deck(
+        &mut self,
+        input: anki_proto::decks::UnhideDeckRequest,
+    ) -> error::Result<anki_proto::collection::OpChanges> {
+        self.unhide_deck(input.deck_id.into()).map(Into::into)
     }
 
     fn rename_deck(

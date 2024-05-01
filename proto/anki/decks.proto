@@ -30,6 +30,8 @@ service DecksService {
   rpc RemoveDecks(DeckIds) returns (collection.OpChangesWithCount);
   rpc ReparentDecks(ReparentDecksRequest)
       returns (collection.OpChangesWithCount);
+  rpc HideDeck(HideDeckRequest) returns (collection.OpChanges);
+  rpc UnhideDeck(UnhideDeckRequest) returns (collection.OpChanges);
   rpc RenameDeck(RenameDeckRequest) returns (collection.OpChanges);
   rpc GetOrCreateFilteredDeck(DeckId) returns (FilteredDeckForUpdate);
   rpc AddOrUpdateFilteredDeck(FilteredDeckForUpdate)
@@ -66,6 +68,8 @@ message Deck {
     int32 learning_studied = 6;
 
     reserved 8 to 13;
+
+    bool hidden = 14;
 
     bytes other = 255;
   }
@@ -148,6 +152,7 @@ message AddOrUpdateDeckLegacyRequest {
 message DeckTreeRequest {
   // if non-zero, counts for the provided timestamp will be included
   int64 now = 1;
+  bool show_hidden_decks = 2;
 }
 
 message DeckTreeNode {
@@ -170,7 +175,7 @@ message DeckTreeNode {
 
   // with children, without any limits
   uint32 total_including_children = 14;
-
+  bool hidden = 15;
   bool filtered = 16;
 
   // low index so key can be packed into a byte, but at bottom
@@ -202,6 +207,14 @@ message DeckNames {
 message DeckNameId {
   int64 id = 1;
   string name = 2;
+}
+
+message HideDeckRequest {
+  int64 deck_id = 1;
+}
+
+message UnhideDeckRequest {
+  int64 deck_id = 1;
 }
 
 message ReparentDecksRequest {
