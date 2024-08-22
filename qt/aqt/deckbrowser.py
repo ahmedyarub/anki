@@ -113,6 +113,7 @@ class DeckBrowser:
             (cmd, arg) = url.split(":", 1)
         else:
             cmd = url
+            arg = ""
         if cmd == "open":
             self.set_current_deck(DeckId(int(arg)))
         elif cmd == "opts":

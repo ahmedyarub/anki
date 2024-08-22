@@ -35,6 +35,14 @@ sync-conflict-explanation =
     If you choose upload, Anki will send this device's data to AnkiWeb, and any changes that are waiting on AnkiWeb will be lost.
     
     After all devices are in sync, future reviews and added cards can be merged automatically.
+sync-conflict-explanation2 =
+    There is a conflict between decks on this device and AnkiWeb. You must choose which version to keep:
+
+    - Select **{ sync-download-from-ankiweb }** to replace decks here with AnkiWeb’s version. You will lose any changes you made on this device since your last sync.
+    - Select **{ sync-upload-to-ankiweb }** to overwrite AnkiWeb’s versions with decks from this device, and delete any changes on AnkiWeb.
+
+    Once the conflict is resolved, syncing will work as usual.
+
 sync-ankiweb-id-label = AnkiWeb ID:
 sync-password-label = Password:
 sync-account-required =
@@ -46,6 +54,11 @@ sync-upload-too-large =
     Your collection file is too large to send to AnkiWeb. You can reduce its
     size by removing any unwanted decks (optionally exporting them first), and
     then using Check Database to shrink the file size down. ({ $details })
+sync-sign-in = Sign in
+sync-ankihub-dialog-heading = AnkiHub Login
+sync-ankihub-username-label = Username or Email:
+sync-ankihub-login-failed = Unable to log in to AnkiHub with the provided credentials.
+sync-ankihub-addon-installation = AnkiHub Add-on Installation
 
 ## Buttons
 

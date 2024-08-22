@@ -97,10 +97,12 @@ impl Collection {
         let idxs = nt.get_io_field_indexes()?;
 
         cloze_note.occlusions = parse_image_occlusions(fields[idxs.occlusions as usize].as_str());
-        cloze_note.header = fields[idxs.header as usize].clone();
-        cloze_note.back_extra = fields[idxs.back_extra as usize].clone();
+        cloze_note.header.clone_from(&fields[idxs.header as usize]);
+        cloze_note
+            .back_extra
+            .clone_from(&fields[idxs.back_extra as usize]);
         cloze_note.image_data = "".into();
-        cloze_note.tags = note.tags.clone();
+        cloze_note.tags.clone_from(&note.tags);
 
         let image_file_name = &fields[idxs.image as usize];
         let src = self
@@ -151,9 +153,7 @@ impl Collection {
 
     fn is_image_file(&mut self, path: &PathBuf) -> Result<bool> {
         let file_path = Path::new(&path);
-        let supported_extensions = [
-            "jpg", "jpeg", "png", "tif", "tiff", "gif", "svg", "webp", "ico", "avif",
-        ];
+        let supported_extensions = ["jpg", "jpeg", "png", "gif", "svg", "webp", "ico", "avif"];
 
         if file_path.exists() {
             let meta = metadata(file_path)?;

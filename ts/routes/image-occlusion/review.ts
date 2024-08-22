@@ -3,6 +3,7 @@
 
 import * as tr from "@generated/ftl";
 
+import { ModuleName, setupI18n } from "@tslib/i18n";
 import { optimumPixelSizeForCanvas } from "./canvas-scale";
 import { Shape } from "./shapes";
 import { Ellipse, extractShapesFromRenderedClozes, Polygon, Rectangle, Text } from "./shapes";
@@ -114,7 +115,7 @@ function calculateContainerSize(
 
 let oneTimeSetupDone = false;
 
-function setupImageOcclusionInner(setupOptions?: SetupImageOcclusionOptions): void {
+async function setupImageOcclusionInner(setupOptions?: SetupImageOcclusionOptions): Promise<void> {
     const canvas = document.querySelector(
         "#image-occlusion-canvas",
     ) as HTMLCanvasElement | null;
@@ -129,6 +130,11 @@ function setupImageOcclusionInner(setupOptions?: SetupImageOcclusionOptions): vo
         "#image-occlusion-container img",
     ) as HTMLImageElement;
     if (image == null) {
+        await setupI18n({
+            modules: [
+                ModuleName.NOTETYPES,
+            ],
+        });
         container.innerText = tr.notetypeErrorNoImageToShow();
         return;
     }
@@ -153,7 +159,7 @@ function setupImageOcclusionInner(setupOptions?: SetupImageOcclusionOptions): vo
         window.addEventListener("keydown", (event) => {
             const button = document.getElementById("toggle");
             if (button && button.style.display !== "none" && event.key === "M") {
-                toggleMasks();
+                toggleMasks(setupOptions);
             }
         });
         oneTimeSetupDone = true;
@@ -163,7 +169,7 @@ function setupImageOcclusionInner(setupOptions?: SetupImageOcclusionOptions): vo
     const button = document.getElementById("toggle");
     if (button) {
         if (document.querySelector("[data-occludeinactive=\"1\"]")) {
-            button.addEventListener("click", toggleMasks);
+            button.addEventListener("click", () => toggleMasks(setupOptions));
         } else {
             button.style.display = "none";
         }
@@ -176,13 +182,16 @@ function drawShapes(
     canvas: HTMLCanvasElement,
     onWillDrawShapes?: DrawShapesFilter,
     onDidDrawShapes?: DrawShapesCallback,
+    allowedShapes?: Array<typeof Shape>,
 ): void {
     const context: CanvasRenderingContext2D = canvas.getContext("2d")!;
     const size = canvas;
+    const filterByAllowedShapes = (el: Shape) =>
+        (allowedShapes && allowedShapes.length > 0) ? allowedShapes.some(s => el instanceof s) : true;
 
-    let activeShapes = extractShapesFromRenderedClozes(".cloze");
-    let inactiveShapes = extractShapesFromRenderedClozes(".cloze-inactive");
-    let highlightShapes = extractShapesFromRenderedClozes(".cloze-highlight");
+    let activeShapes = extractShapesFromRenderedClozes(".cloze").filter(filterByAllowedShapes);
+    let inactiveShapes = extractShapesFromRenderedClozes(".cloze-inactive").filter(filterByAllowedShapes);
+    let highlightShapes = extractShapesFromRenderedClozes(".cloze-highlight").filter(filterByAllowedShapes);
     let properties = getShapeProperties();
 
     const processed = onWillDrawShapes?.({ activeShapes, inactiveShapes, highlightShapes, properties }, context);
@@ -224,7 +233,12 @@ function drawShapes(
         });
     }
 
-    onDidDrawShapes?.({ activeShapes, inactiveShapes, highlightShapes, properties }, context);
+    onDidDrawShapes?.({
+        activeShapes,
+        inactiveShapes,
+        highlightShapes,
+        properties,
+    }, context);
 }
 
 interface DrawShapeParameters {
@@ -446,14 +460,16 @@ function getShapeProperties(): ShapeProperties {
     }
 }
 
-const toggleMasks = (): void => {
-    const canvas = document.getElementById(
-        "image-occlusion-canvas",
-    ) as HTMLCanvasElement;
-    const display = canvas.style.display;
-    if (display === "none") {
-        canvas.style.display = "unset";
-    } else {
-        canvas.style.display = "none";
+let hide = false;
+const toggleMasks = (setupOptions?: SetupImageOcclusionOptions): void => {
+    const canvas = document.getElementById("image-occlusion-canvas") as HTMLCanvasElement;
+    const context = canvas.getContext("2d")!;
+
+    hide = !hide;
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    if (hide) {
+        drawShapes(canvas, setupOptions?.onWillDrawShapes, setupOptions?.onDidDrawShapes, [Text]);
+        return;
     }
+    drawShapes(canvas, setupOptions?.onWillDrawShapes, setupOptions?.onDidDrawShapes);
 };

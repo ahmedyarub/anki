@@ -4,13 +4,14 @@
 from __future__ import annotations
 
 import io
+import os
 import pickle
 import random
 import shutil
 import traceback
 from enum import Enum
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
 import anki.lang
 import aqt.forms
@@ -23,6 +24,7 @@ from anki.sync import SyncAuth
 from anki.utils import int_time, int_version, is_mac, is_win
 from aqt import appHelpSite, gui_hooks
 from aqt.qt import *
+from aqt.qt import sip
 from aqt.theme import Theme, WidgetStyle, theme_manager
 from aqt.toolbar import HideMode
 from aqt.utils import disable_help_button, send_to_trash, showWarning, tr
@@ -211,12 +213,13 @@ class ProfileManager:
         if name == "_global":
             raise Exception("_global is not a valid name")
         data = self.db.scalar(
-            "select cast(data as blob) from profiles where name = ?", name
+            "select cast(data as blob) from profiles where name = ? collate nocase",
+            name,
         )
         self.name = name
         try:
             self.profile = self._unpickle(data)
-        except:
+        except Exception:
             print(traceback.format_exc())
             QMessageBox.warning(
                 None,
@@ -230,22 +233,26 @@ class ProfileManager:
         return True
 
     def save(self) -> None:
-        sql = "update profiles set data = ? where name = ?"
+        sql = "update profiles set data = ? where name = ? collate nocase"
         self.db.execute(sql, self._pickle(self.profile), self.name)
         self.db.execute(sql, self._pickle(self.meta), "_global")
         self.db.commit()
 
     def create(self, name: str) -> None:
         prof = profileConf.copy()
+        if self.db.scalar("select 1 from profiles where name = ? collate nocase", name):
+            return
         self.db.execute(
-            "insert or ignore into profiles values (?, ?)", name, self._pickle(prof)
+            "insert or ignore into profiles values (?, ?)",
+            name,
+            self._pickle(prof),
         )
         self.db.commit()
 
     def remove(self, name: str) -> None:
         path = self.profileFolder(create=False)
         send_to_trash(Path(path))
-        self.db.execute("delete from profiles where name = ?", name)
+        self.db.execute("delete from profiles where name = ? collate nocase", name)
         self.db.commit()
 
     def trashCollection(self) -> None:
@@ -275,7 +282,9 @@ class ProfileManager:
                 return
 
         # update name
-        self.db.execute("update profiles set name = ? where name = ?", name, oldName)
+        self.db.execute(
+            "update profiles set name = ? where name = ? collate nocase", name, oldName
+        )
         # rename folder
         try:
             os.rename(oldFolder, newFolder)
@@ -285,7 +294,7 @@ class ProfileManager:
                 showWarning(tr.profiles_anki_could_not_rename_your_profile())
             else:
                 raise
-        except:
+        except BaseException:
             self.db.rollback()
             raise
         else:
@@ -386,7 +395,7 @@ class ProfileManager:
             if self.db:
                 try:
                     self.db.close()
-                except:
+                except Exception:
                     pass
             for suffix in ("", "-journal"):
                 fpath = path + suffix
@@ -401,12 +410,12 @@ class ProfileManager:
             self.db.execute(
                 """
 create table if not exists profiles
-(name text primary key, data blob not null);"""
+(name text primary key collate nocase, data blob not null);"""
             )
             data = self.db.scalar(
                 "select cast(data as blob) from profiles where name = '_global'"
             )
-        except:
+        except Exception:
             traceback.print_stack()
             if result.loadError:
                 # already failed, prevent infinite loop
@@ -420,7 +429,7 @@ create table if not exists profiles
             try:
                 self.meta = self._unpickle(data)
                 return result
-            except:
+            except Exception:
                 traceback.print_stack()
                 print("resetting corrupt _global")
                 result.loadError = True
@@ -483,7 +492,7 @@ create table if not exists profiles
 
     def setLang(self, code: str) -> None:
         self.meta["defaultLang"] = code
-        sql = "update profiles set data = ? where name = ?"
+        sql = "update profiles set data = ? where name = ? collate nocase"
         self.db.execute(sql, self._pickle(self.meta), "_global")
         self.db.commit()
         anki.lang.set_lang(code)
@@ -551,7 +560,7 @@ create table if not exists profiles
     def set_spacebar_rates_card(self, on: bool) -> None:
         self.meta["spacebar_rates_card"] = on
 
-    def get_answer_key(self, ease: int) -> Optional[str]:
+    def get_answer_key(self, ease: int) -> str | None:
         return self.meta.setdefault("answer_keys", self.default_answer_keys).get(ease)
 
     def set_answer_key(self, ease: int, key: str):
@@ -657,10 +666,17 @@ create table if not exists profiles
     def set_host_number(self, val: int | None) -> None:
         self.profile["hostNum"] = val or 0
 
+    def check_for_updates(self) -> bool:
+        return self.meta.get("check_for_updates", True)
+
+    def set_update_check(self, on: bool) -> None:
+        self.meta["check_for_updates"] = on
+
     def media_syncing_enabled(self) -> bool:
         return self.profile.get("syncMedia", True)
 
     def auto_syncing_enabled(self) -> bool:
+        "True if syncing on startup/shutdown enabled."
         return self.profile.get("autoSync", True)
 
     def sync_auth(self) -> SyncAuth | None:
@@ -697,10 +713,10 @@ create table if not exists profiles
             self.set_current_sync_url(None)
             self.profile["customSyncUrl"] = url
 
-    def auto_sync_media_minutes(self) -> int:
+    def periodic_sync_media_minutes(self) -> int:
         return self.profile.get("autoSyncMediaMinutes", 15)
 
-    def set_auto_sync_media_minutes(self, val: int) -> None:
+    def set_periodic_sync_media_minutes(self, val: int) -> None:
         self.profile["autoSyncMediaMinutes"] = val
 
     def show_browser_table_tooltips(self) -> bool:
@@ -714,3 +730,15 @@ create table if not exists profiles
 
     def network_timeout(self) -> int:
         return self.profile.get("networkTimeout") or 60
+
+    def set_ankihub_token(self, val: str | None) -> None:
+        self.profile["thirdPartyAnkiHubToken"] = val
+
+    def ankihub_token(self) -> str | None:
+        return self.profile.get("thirdPartyAnkiHubToken")
+
+    def set_ankihub_username(self, val: str | None) -> None:
+        self.profile["thirdPartyAnkiHubUsername"] = val
+
+    def ankihub_username(self) -> str | None:
+        return self.profile.get("thirdPartyAnkiHubUsername")

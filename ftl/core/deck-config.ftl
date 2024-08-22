@@ -61,7 +61,7 @@ deck-config-today-only = Today only
 
 deck-config-learning-steps = Learning steps
 # Please don't translate `1m`, `2d`
--deck-config-delay-hint = Delays are typically minutes (eg `1m`) or days (eg `2d`), but hours (eg `1h`) and seconds (eg `30s`) are also supported.
+-deck-config-delay-hint = Delays are typically minutes (e.g. `1m`) or days (e.g. `2d`), but hours (e.g. `1h`) and seconds (e.g. `30s`) are also supported.
 deck-config-learning-steps-tooltip =
     One or more delays, separated by spaces. The first delay will be used
     when you press the `Again` button on a new card, and is 1 minute by default.
@@ -100,7 +100,7 @@ deck-config-leech-threshold-tooltip =
     think of a mnemonic to help you remember it.
 # See actions-suspend-card and scheduling-tag-only for the wording
 deck-config-leech-action-tooltip =
-    `Tag Only`: Add a "leech" tag to the note, and display a pop-up.
+    `Tag Only`: Add a 'leech' tag to the note, and display a pop-up.
     
     `Suspend Card`: In addition to tagging the note, hide the card until it is
     manually unsuspended.
@@ -148,8 +148,8 @@ deck-config-new-gather-priority-tooltip-2 =
     the latest-added first.
     
     `Random notes`: gathers cards of randomly selected notes. When sibling burying is
-    disabled, this allows all cards of a note to be seen in a session (eg. both a front->back
-    and back->front card)
+    disabled, this allows all cards of a note to be seen in a session (e.g. both a front→back
+    and back→front card).
     
     `Random cards`: gathers cards completely randomly.
 deck-config-new-gather-priority-deck = Deck
@@ -160,7 +160,7 @@ deck-config-new-gather-priority-random-notes = Random notes
 deck-config-new-gather-priority-random-cards = Random cards
 deck-config-new-card-sort-order = New card sort order
 deck-config-new-card-sort-order-tooltip-2 =
-    `Card type`: Displays cards in order of card type number. If you have sibling burying
+    `Card type, then order gathered`: Displays cards in order of card type number. If you have sibling burying
     disabled, this will ensure all front→back cards are seen before any back→front cards.
     This is useful to have all cards of the same note shown in the same session, but not
     too close to one another.
@@ -180,7 +180,7 @@ deck-config-new-card-sort-order-tooltip-2 =
 deck-config-sort-order-card-template-then-random = Card type, then random
 deck-config-sort-order-random-note-then-template = Random note, then card type
 deck-config-sort-order-random = Random
-deck-config-sort-order-template-then-gather = Card type
+deck-config-sort-order-template-then-gather = Card type, then order gathered
 deck-config-sort-order-gather = Order gathered
 deck-config-new-review-priority = New/review order
 deck-config-new-review-priority-tooltip = When to show new cards in relation to review cards.
@@ -234,7 +234,7 @@ deck-config-stop-timer-on-answer-tooltip =
 ## Auto Advance section
 
 deck-config-seconds-to-show-question = Seconds to show question for
-deck-config-seconds-to-show-question-tooltip-2 = When auto advance is activated, the number of seconds to wait before revealing the answer. Set to 0 to disable.
+deck-config-seconds-to-show-question-tooltip-3 = When auto advance is activated, the number of seconds to wait before applying the question action. Set to 0 to disable.
 deck-config-seconds-to-show-answer = Seconds to show answer for
 deck-config-seconds-to-show-answer-tooltip-2 = When auto advance is activated, the number of seconds to wait before applying the answer action. Set to 0 to disable.
 deck-config-question-action-show-answer = Show Answer
@@ -242,8 +242,8 @@ deck-config-question-action-show-reminder = Show Reminder
 deck-config-question-action = Question action 
 deck-config-question-action-tool-tip = The action to perform after the question is shown, and time has elapsed.
 deck-config-answer-action = Answer action
-deck-config-answer-action-tooltip = The action to perform on the current card before automatically advancing to the next one.
-deck-config-wait-for-audio-tooltip = Wait for audio to finish before automatically revealing answer or next question
+deck-config-answer-action-tooltip-2 = The action to perform after the answer is shown, and time has elapsed.
+deck-config-wait-for-audio-tooltip-2 = Wait for audio to finish before automatically applying the question action or answer action.
 
 ## Audio section
 
@@ -251,7 +251,7 @@ deck-config-audio-title = Audio
 deck-config-disable-autoplay = Don't play audio automatically
 deck-config-disable-autoplay-tooltip =
     When enabled, Anki will not play audio automatically.
-    It can be played manually by clicking/tapping on an audio icon, or by using the replay audio action.
+    It can be played manually by clicking/tapping on an audio icon, or by using the Replay action.
 deck-config-skip-question-when-replaying = Skip question when replaying answer
 deck-config-always-include-question-audio-tooltip =
     Whether the question audio should be included when the Replay action is
@@ -350,7 +350,7 @@ deck-config-compute-optimal-weights = Optimize FSRS parameters
 deck-config-compute-minimum-recommended-retention = Minimum recommended retention
 deck-config-optimize-button = Optimize
 deck-config-compute-button = Compute
-deck-config-ignore-before = Ignore reviews before
+deck-config-ignore-before = Ignore cards reviewed before
 deck-config-optimize-all-tip = You can optimize all presets at once by using the dropdown button next to "Save".
 deck-config-evaluate-button = Evaluate
 deck-config-desired-retention = Desired retention
@@ -368,7 +368,7 @@ deck-config-reschedule-cards-on-change = Reschedule cards on change
 deck-config-fsrs-tooltip =
     Affects the entire collection.
 
-    The Free Spaced Repetition Scheduler (FSRS) is an alternative to Anki's legacy SuperMemo 2 (SM2) scheduler.
+    The Free Spaced Repetition Scheduler (FSRS) is an alternative to Anki's legacy SuperMemo 2 (SM-2) scheduler.
     By more accurately determining when you are likely to forget, it can help you remember
     more material in the same amount of time. This setting is shared by all deck presets.
 
@@ -388,11 +388,11 @@ deck-config-historical-retention-tooltip =
     the missing reviews.
 
     Your review history may be incomplete for two reasons:
-    1. Because you've used the 'ignore reviews before' option.
+    1. Because you're using the 'ignore cards reviewed before' option.
     2. Because you previously deleted review logs to free up space, or imported material from a different
     SRS program.
 
-    The latter is quite rare, so unless you've used the former option, you probably don't need to adjust
+    The latter is quite rare, so unless you're using the former option, you probably don't need to adjust
     this setting.
 deck-config-weights-tooltip2 =
     FSRS parameters affect how cards are scheduled. Anki will start with default parameters. You can use 
@@ -406,29 +406,28 @@ deck-config-reschedule-cards-on-change-tooltip =
     will be changed.
 deck-config-reschedule-cards-warning =
     Depending on your desired retention, this can result in a large number of cards becoming
-    due, so is not recommended when first switching from SM2.
+    due, so is not recommended when first switching from SM-2.
 
     Use this option sparingly, as it will add a review entry to each of your cards, and
     increase the size of your collection.
-deck-config-ignore-before-tooltip = 
-    If set, reviews before the provided date will be ignored when optimizing & evaluating FSRS parameters.
+deck-config-ignore-before-tooltip-2 = 
+    If set, cards reviewed before the provided date will be ignored when optimizing FSRS parameters.
     This can be useful if you imported someone else's scheduling data, or have changed the way you use the answer buttons.
 deck-config-compute-optimal-weights-tooltip2 =
     When you click the Optimize button, FSRS will analyze your review history, and generate parameters that are 
-    optimal for your memory and the content you're studying. If your decks vary wildly in difficulty, it 
+    optimal for your memory and the content you're studying. If your decks vary wildly in subjective difficulty, it 
     is recommended to assign them separate presets, as the parameters for easy decks and hard decks will be different. 
     You don't need to optimize your parameters frequently - once every few months is sufficient.
     
     By default, parameters will be calculated from the review history of all decks using the current preset. You can
     optionally adjust the search before calculating the parameters, if you'd like to alter which cards are used for
     optimizing the parameters.
-deck-config-compute-optimal-retention-tooltip3 =
-    This tool assumes that you’re starting with 0 learned cards, and will attempt to find the desired retention value 
-    that will lead to the most material learnt, in the least amount of time. To accurately simulate your learning process, 
-    this feature requires a minimum of 400+ reviews. The calculated number can serve as a reference when deciding what to 
-    set your desired retention to. You may wish to choose a higher desired retention, if you’re willing to trade more study 
-    time for a greater recall rate. Setting your desired retention lower than the minimum is not recommended, as it will 
-    lead to a higher workload, because of the high forgetting rate.
+deck-config-compute-optimal-retention-tooltip4 =
+    This tool will attempt to find the desired retention value 
+    that will lead to the most material learnt, in the least amount of time. The calculated number can serve as a reference
+    when deciding what to set your desired retention to. You may wish to choose a higher desired retention, if you’re 
+    willing to trade more study time for a greater recall rate. Setting your desired retention lower than the minimum
+    is not recommended, as it will lead to a higher workload, because of the high forgetting rate.
 deck-config-please-save-your-changes-first = Please save your changes first.
 deck-config-a-100-day-interval = 
     { $days ->
@@ -470,6 +469,12 @@ deck-config-bury-tooltip =
     
     When using the V3 scheduler, interday learning cards can also be buried. Interday
     learning cards are cards with a current learning step of one or more days.
+deck-config-seconds-to-show-question-tooltip = When auto advance is activated, the number of seconds to wait before revealing the answer. Set to 0 to disable.
+deck-config-answer-action-tooltip = The action to perform on the current card before automatically advancing to the next one.
+deck-config-wait-for-audio-tooltip = Wait for audio to finish before automatically revealing answer or next question.
+deck-config-ignore-before-tooltip = 
+    If set, reviews before the provided date will be ignored when optimizing & evaluating FSRS parameters.
+    This can be useful if you imported someone else's scheduling data, or have changed the way you use the answer buttons.
 deck-config-compute-optimal-retention-tooltip =
     This tool assumes you're starting with 0 cards, and will attempt to calculate the amount of material you'll
     be able to retain in the given time frame. The estimated retention will greatly depend on your inputs, and
@@ -499,3 +504,11 @@ deck-config-compute-optimal-retention-tooltip2 =
     reference when deciding what to set your desired retention to. You may wish to choose a higher desired retention,
     if you’re willing to trade more study time for a greater recall rate. Setting your desired retention lower than
     the minimum is not recommended, as it will lead to more work without benefit.
+deck-config-compute-optimal-retention-tooltip3 =
+    This tool assumes that you’re starting with 0 learned cards, and will attempt to find the desired retention value 
+    that will lead to the most material learnt, in the least amount of time. To accurately simulate your learning process, 
+    this feature requires a minimum of 400+ reviews. The calculated number can serve as a reference when deciding what to 
+    set your desired retention to. You may wish to choose a higher desired retention, if you’re willing to trade more study 
+    time for a greater recall rate. Setting your desired retention lower than the minimum is not recommended, as it will 
+    lead to a higher workload, because of the high forgetting rate.
+deck-config-seconds-to-show-question-tooltip-2 = When auto advance is activated, the number of seconds to wait before revealing the answer. Set to 0 to disable.

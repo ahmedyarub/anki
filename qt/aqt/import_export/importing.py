@@ -3,10 +3,11 @@
 
 from __future__ import annotations
 
+import os
 import re
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from itertools import chain
-from typing import Type
 
 import aqt.main
 from anki.collection import Collection, Progress
@@ -96,7 +97,7 @@ class MnemosyneImporter(Importer):
     @staticmethod
     def do_import(mw: aqt.main.AnkiQt, path: str) -> None:
         def on_success(json: str) -> None:
-            json_path = os.path.join(tmpdir(), path)
+            json_path = os.path.join(tmpdir(), os.path.basename(path))
             with open(json_path, "wb") as file:
                 file.write(json.encode("utf8"))
             ImportDialog(mw, JsonFileArgs(path=json_path))
@@ -124,7 +125,7 @@ class JsonImporter(Importer):
         ImportDialog(mw, JsonFileArgs(path=path))
 
 
-IMPORTERS: list[Type[Importer]] = [
+IMPORTERS: list[type[Importer]] = [
     ColpkgImporter,
     ApkgImporter,
     MnemosyneImporter,

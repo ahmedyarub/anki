@@ -7,9 +7,10 @@ import functools
 import json
 import random
 import re
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from enum import Enum, auto
-from typing import Any, Literal, Match, Sequence, cast
+from typing import Any, Literal, Match, Union, cast
 
 import aqt
 import aqt.browser
@@ -26,6 +27,7 @@ from anki.scheduler.v3 import (
 )
 from anki.tags import MARKED_TAG
 from anki.types import assert_exhaustive
+from anki.utils import is_mac
 from aqt import AnkiQt, gui_hooks
 from aqt.browser.card_info import PreviousReviewerCardInfo, ReviewerCardInfo
 from aqt.deckoptions import confirm_deck_then_display_options
@@ -150,8 +152,8 @@ class Reviewer:
         self.previous_card: Card | None = None
         self._answeredIds: list[CardId] = []
         self._recordedAudio: str | None = None
-        self.typeCorrect: str = None  # web init happens before this is set
-        self.state: Literal["question", "answer", "transition", None] = None
+        self.typeCorrect: str | None = None  # web init happens before this is set
+        self.state: Literal["question", "answer", "transition"] | None = None
         self._refresh_needed: RefreshNeeded | None = None
         self._v3: V3CardInfo | None = None
         self._state_mutation_key = str(random.randint(0, 2**64 - 1))
@@ -160,7 +162,7 @@ class Reviewer:
         self._previous_card_info = PreviousReviewerCardInfo(self.mw)
         self._states_mutated = True
         self._state_mutation_js = None
-        self._reps: int = None
+        self._reps: int | None = None
         self._show_question_timer: QTimer | None = None
         self._show_answer_timer: QTimer | None = None
         self.auto_advance_enabled = False
@@ -367,7 +369,7 @@ class Reviewer:
     def _showQuestion(self) -> None:
         self._reps += 1
         self.state = "question"
-        self.typedAnswer: str = None
+        self.typedAnswer: str | None = None
         c = self.card
         # grab the question and play audio
         q = c.question()
@@ -568,7 +570,7 @@ class Reviewer:
 
     def korean_shortcuts(
         self,
-    ) -> Sequence[Union[tuple[str, Callable], tuple[Qt.Key, Callable]]]:
+    ) -> Sequence[tuple[str, Callable] | tuple[Qt.Key, Callable]]:
         return [
             ("ㄷ", self.mw.onEditCurrent),
             ("ㅡ", self.showContextMenu),
@@ -588,7 +590,7 @@ class Reviewer:
 
     def _shortcutKeys(
         self,
-    ) -> Sequence[Union[tuple[str, Callable], tuple[Qt.Key, Callable]]]:
+    ) -> Sequence[tuple[str, Callable] | tuple[Qt.Key, Callable]]:
         return [
             ("e", self.mw.onEditCurrent),
             (" ", self.onEnterKey),
@@ -839,7 +841,7 @@ timerStopped = false;
         if not self.mw.col.conf["dueCounts"]:
             return ""
 
-        counts: list[Union[int, str]]
+        counts: list[int | str]
         idx, counts_ = self._v3.counts()
         counts = cast(list[Union[int, str]], counts_)
         counts[idx] = f"<u>{counts[idx]}</u>"

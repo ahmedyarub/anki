@@ -2,7 +2,8 @@
 # License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 from __future__ import annotations
 
-from typing import Any, Callable, Sequence
+from collections.abc import Callable, Sequence
+from typing import Any
 
 import aqt
 import aqt.browser
@@ -599,7 +600,9 @@ class Table:
             self._view.verticalScrollBar().setValue(vertical)
 
     def _move_current(
-        self, direction: QAbstractItemView.CursorAction, index: QModelIndex = None
+        self,
+        direction: QAbstractItemView.CursorAction,
+        index: QModelIndex | None = None,
     ) -> None:
         if not self.has_current():
             return
@@ -608,7 +611,10 @@ class Table:
                 direction,
                 self.browser.mw.app.keyboardModifiers(),
             )
-        self._view.selectionModel().setCurrentIndex(
+        # Setting current like this avoids a bug with shift-click selection
+        # https://github.com/ankitects/anki/issues/2469
+        self._view.setCurrentIndex(index)
+        self._view.selectionModel().select(
             index,
             QItemSelectionModel.SelectionFlag.Clear
             | QItemSelectionModel.SelectionFlag.Select

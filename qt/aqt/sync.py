@@ -3,9 +3,10 @@
 
 from __future__ import annotations
 
+import functools
 import os
+from collections.abc import Callable
 from concurrent.futures import Future
-from typing import Callable
 
 import aqt
 import aqt.main
@@ -28,8 +29,8 @@ from aqt.qt import (
 )
 from aqt.utils import (
     ask_user_dialog,
-    askUser,
     disable_help_button,
+    show_warning,
     showText,
     showWarning,
     tooltip,
@@ -71,7 +72,7 @@ def handle_sync_error(mw: aqt.main.AnkiQt, err: Exception) -> None:
     elif isinstance(err, Interrupted):
         # no message to show
         return
-    showWarning(str(err))
+    show_warning(str(err))
 
 
 def on_normal_sync_timer(mw: aqt.main.AnkiQt) -> None:
@@ -157,11 +158,12 @@ def full_sync(
                 on_done()
 
         ask_user_dialog(
-            tr.sync_conflict_explanation(),
+            tr.sync_conflict_explanation2(),
             callback=callback,
             buttons=button_labels,
             default_button=2,
             parent=mw,
+            textFormat=Qt.TextFormat.MarkdownText,
         )
 
 
@@ -170,10 +172,15 @@ def confirm_full_download(
 ) -> None:
     # confirmation step required, as some users customize their notetypes
     # in an empty collection, then want to upload them
-    if not askUser(tr.sync_confirm_empty_download(), parent=mw):
-        return on_done()
-    else:
-        mw.closeAllWindows(lambda: full_download(mw, server_usn, on_done))
+    def callback(choice: int) -> None:
+        if choice:
+            on_done()
+        else:
+            mw.closeAllWindows(lambda: full_download(mw, server_usn, on_done))
+
+    ask_user_dialog(
+        tr.sync_confirm_empty_download(), callback=callback, default_button=0, parent=mw
+    )
 
 
 def confirm_full_upload(
@@ -182,10 +189,15 @@ def confirm_full_upload(
     # confirmation step required, as some users have reported an upload
     # happening despite having their AnkiWeb collection not being empty
     # (not reproducible - maybe a compiler bug?)
-    if not askUser(tr.sync_confirm_empty_upload(), parent=mw):
-        return on_done()
-    else:
-        mw.closeAllWindows(lambda: full_upload(mw, server_usn, on_done))
+    def callback(choice: int) -> None:
+        if choice:
+            on_done()
+        else:
+            mw.closeAllWindows(lambda: full_upload(mw, server_usn, on_done))
+
+    ask_user_dialog(
+        tr.sync_confirm_empty_upload(), callback=callback, default_button=0, parent=mw
+    )
 
 
 def on_full_sync_timer(mw: aqt.main.AnkiQt, label: str) -> None:
@@ -287,14 +299,8 @@ def sync_login(
     username: str = "",
     password: str = "",
 ) -> None:
-    while True:
-        (username, password) = get_id_and_pass_from_user(mw, username, password)
-        if not username and not password:
-            return
-        if username and password:
-            break
 
-    def on_future_done(fut: Future[SyncAuth]) -> None:
+    def on_future_done(fut: Future[SyncAuth], username: str, password: str) -> None:
         try:
             auth = fut.result()
         except SyncError as e:
@@ -313,17 +319,29 @@ def sync_login(
 
         on_success()
 
-    mw.taskman.with_progress(
-        lambda: mw.col.sync_login(
-            username=username, password=password, endpoint=mw.pm.sync_endpoint()
-        ),
-        on_future_done,
-    )
+    def callback(username: str, password: str) -> None:
+        if not username and not password:
+            return
+        if username and password:
+            mw.taskman.with_progress(
+                lambda: mw.col.sync_login(
+                    username=username, password=password, endpoint=mw.pm.sync_endpoint()
+                ),
+                functools.partial(on_future_done, username=username, password=password),
+                parent=mw,
+            )
+        else:
+            sync_login(mw, on_success, username, password)
+
+    get_id_and_pass_from_user(mw, callback, username, password)
 
 
 def get_id_and_pass_from_user(
-    mw: aqt.main.AnkiQt, username: str = "", password: str = ""
-) -> tuple[str, str]:
+    mw: aqt.main.AnkiQt,
+    callback: Callable[[str, str], None],
+    username: str = "",
+    password: str = "",
+) -> None:
     diag = QDialog(mw)
     diag.setWindowTitle("Anki")
     disable_help_button(diag)
@@ -344,12 +362,14 @@ def get_id_and_pass_from_user(
     user = QLineEdit()
     user.setText(username)
     g.addWidget(user, 0, 1)
+    l1.setBuddy(user)
     l2 = QLabel(tr.sync_password_label())
     g.addWidget(l2, 1, 0)
     passwd = QLineEdit()
     passwd.setText(password)
     passwd.setEchoMode(QLineEdit.EchoMode.Password)
     g.addWidget(passwd, 1, 1)
+    l2.setBuddy(passwd)
     vbox.addLayout(g)
     bb = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)  # type: ignore
     bb.button(QDialogButtonBox.StandardButton.Ok).setAutoDefault(True)
@@ -357,13 +377,18 @@ def get_id_and_pass_from_user(
     qconnect(bb.rejected, diag.reject)
     vbox.addWidget(bb)
     diag.setLayout(vbox)
+    diag.adjustSize()
     diag.show()
     user.setFocus()
 
-    accepted = diag.exec()
-    if not accepted:
-        return ("", "")
-    return (user.text().strip(), passwd.text())
+    def on_finished(result: int) -> None:
+        if result == QDialog.DialogCode.Rejected:
+            callback("", "")
+        else:
+            callback(user.text().strip(), passwd.text())
+
+    qconnect(diag.finished, on_finished)
+    diag.open()
 
 
 # export platform version to syncing code

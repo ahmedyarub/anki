@@ -97,6 +97,7 @@ fn format_comments(comments: &Option<String>) -> String {
 /// - it has a single field
 /// - its name ends in Request
 /// - it has any optional fields
+///
 /// ...then destructuring will be skipped, and the method will take the input
 /// message directly. Returns (params_line, assignment_lines)
 fn maybe_destructured_input(input: &MessageDescriptor) -> (String, String) {
@@ -248,6 +249,7 @@ import anki.search_pb2
 import anki.stats_pb2
 import anki.sync_pb2
 import anki.tags_pb2
+import anki.ankihub_pb2
 
 class RustBackendGenerated:
     def _run_command(self, service: int, method: int, input: Any) -> bytes:

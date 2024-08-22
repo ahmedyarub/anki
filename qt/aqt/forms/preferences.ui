@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>606</width>
+    <width>636</width>
     <height>638</height>
    </rect>
   </property>
@@ -44,6 +44,29 @@
             <property name="text">
              <string>preferences_language</string>
             </property>
+            <property name="buddy">
+             <cstring>lang</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QComboBox" name="video_driver">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="video_driver_label">
+            <property name="text">
+             <string>preferences_video_driver</string>
+            </property>
+            <property name="buddy">
+             <cstring>video_driver</cstring>
+            </property>
            </widget>
           </item>
           <item row="0" column="1">
@@ -59,20 +82,16 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="video_driver_label">
-            <property name="text">
-             <string>preferences_video_driver</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QComboBox" name="video_driver">
+          <item row="2" column="0">
+           <widget class="QCheckBox" name="check_for_updates">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
+            </property>
+            <property name="text">
+             <string>preferences_check_for_updates</string>
             </property>
            </widget>
           </item>
@@ -116,6 +135,9 @@
             <property name="text">
              <string>preferences_style</string>
             </property>
+            <property name="buddy">
+             <cstring>styleComboBox</cstring>
+            </property>
            </widget>
           </item>
           <item row="0" column="0">
@@ -123,12 +145,18 @@
             <property name="text">
              <string>preferences_theme</string>
             </property>
+            <property name="buddy">
+             <cstring>theme</cstring>
+            </property>
            </widget>
           </item>
           <item row="2" column="0">
            <widget class="QLabel" name="uiSizeLabel">
             <property name="text">
              <string>preferences_user_interface_size</string>
+            </property>
+            <property name="buddy">
+             <cstring>uiScale</cstring>
             </property>
            </widget>
           </item>
@@ -277,19 +305,15 @@
              <widget class="QSpinBox" name="lrnCutoff">
               <property name="maximumSize">
                <size>
-                <width>60</width>
+                <width>16777215</width>
                 <height>16777215</height>
                </size>
               </property>
+              <property name="suffix">
+               <string>preferences_mins</string>
+              </property>
               <property name="maximum">
                <number>999</number>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="2">
-             <widget class="QLabel" name="label_29">
-              <property name="text">
-               <string>preferences_mins</string>
               </property>
              </widget>
             </item>
@@ -298,12 +322,8 @@
               <property name="text">
                <string>preferences_timebox_time_limit</string>
               </property>
-             </widget>
-            </item>
-            <item row="0" column="2">
-             <widget class="QLabel" name="label_40">
-              <property name="text">
-               <string>preferences_hours_past_midnight</string>
+              <property name="buddy">
+               <cstring>timeLimit</cstring>
               </property>
              </widget>
             </item>
@@ -311,9 +331,12 @@
              <widget class="QSpinBox" name="dayOffset">
               <property name="maximumSize">
                <size>
-                <width>60</width>
+                <width>16777215</width>
                 <height>16777215</height>
                </size>
+              </property>
+              <property name="suffix">
+               <string>preferences_hours_past_midnight</string>
               </property>
               <property name="maximum">
                <number>23</number>
@@ -325,6 +348,9 @@
               <property name="text">
                <string>preferences_learn_ahead_limit</string>
               </property>
+              <property name="buddy">
+               <cstring>lrnCutoff</cstring>
+              </property>
              </widget>
             </item>
             <item row="0" column="0">
@@ -332,17 +358,16 @@
               <property name="text">
                <string>preferences_next_day_starts_at</string>
               </property>
-             </widget>
-            </item>
-            <item row="2" column="2">
-             <widget class="QLabel" name="label_39">
-              <property name="text">
-               <string>preferences_mins</string>
+              <property name="buddy">
+               <cstring>dayOffset</cstring>
               </property>
              </widget>
             </item>
             <item row="2" column="1">
              <widget class="QSpinBox" name="timeLimit">
+              <property name="suffix">
+               <string>preferences_mins</string>
+              </property>
               <property name="maximum">
                <number>9999</number>
               </property>
@@ -360,7 +385,7 @@
            <property name="title">
             <string>preferences_review</string>
            </property>
-           <layout class="QVBoxLayout" name="verticalLayout_16">
+           <layout class="QVBoxLayout" name="verticalLayout_5">
             <item>
              <widget class="QCheckBox" name="showPlayButtons">
               <property name="sizePolicy">
@@ -423,6 +448,19 @@
               </property>
               <property name="text">
                <string>preferences_spacebar_rates_card</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="render_latex">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>preferences_generate_latex_images_automatically</string>
               </property>
              </widget>
             </item>
@@ -513,6 +551,9 @@
               <property name="text">
                <string>preferences_default_deck</string>
               </property>
+              <property name="buddy">
+               <cstring>useCurrent</cstring>
+              </property>
              </widget>
             </item>
             <item>
@@ -552,6 +593,9 @@
              <widget class="QLabel" name="search_text_label">
               <property name="text">
                <string>preferences_default_search_text</string>
+              </property>
+              <property name="buddy">
+               <cstring>default_search_text</cstring>
               </property>
              </widget>
             </item>
@@ -705,10 +749,16 @@
               <property name="text">
                <string>preferences_network_timeout</string>
               </property>
+              <property name="buddy">
+               <cstring>network_timeout</cstring>
+              </property>
              </widget>
             </item>
             <item>
              <widget class="QSpinBox" name="network_timeout">
+              <property name="suffix">
+               <string>scheduling_seconds</string>
+              </property>
               <property name="minimum">
                <number>30</number>
               </property>
@@ -716,26 +766,6 @@
                <number>99999</number>
               </property>
              </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="label_8">
-              <property name="text">
-               <string>scheduling_seconds</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer_4">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
             </item>
            </layout>
           </item>
@@ -789,6 +819,9 @@
             <property name="text">
              <string/>
             </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
            </widget>
           </item>
           <item>
@@ -840,6 +873,19 @@
         </spacer>
        </item>
        <item>
+        <spacer name="verticalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
         <layout class="QGridLayout" name="gridLayout_2">
          <item row="0" column="1">
           <widget class="QLineEdit" name="custom_sync_url">
@@ -852,6 +898,9 @@
           <widget class="QLabel" name="label">
            <property name="text">
             <string>preferences_custom_sync_url</string>
+           </property>
+           <property name="buddy">
+            <cstring>custom_sync_url</cstring>
            </property>
           </widget>
          </item>
@@ -954,6 +1003,9 @@
               <property name="text">
                <string>preferences_daily_backups</string>
               </property>
+              <property name="buddy">
+               <cstring>daily_backups</cstring>
+              </property>
              </widget>
             </item>
             <item row="4" column="2">
@@ -968,6 +1020,9 @@
               <property name="text">
                <string>preferences_monthly_backups</string>
               </property>
+              <property name="buddy">
+               <cstring>monthly_backups</cstring>
+              </property>
              </widget>
             </item>
             <item row="4" column="0">
@@ -975,12 +1030,18 @@
               <property name="text">
                <string>preferences_weekly_backups</string>
               </property>
+              <property name="buddy">
+               <cstring>weekly_backups</cstring>
+              </property>
              </widget>
             </item>
             <item row="1" column="0">
              <widget class="QLabel" name="label_7">
               <property name="text">
                <string>preferences_minutes_between_backups</string>
+              </property>
+              <property name="buddy">
+               <cstring>minutes_between_backups</cstring>
               </property>
              </widget>
             </item>
@@ -1066,6 +1127,133 @@
        </item>
       </layout>
      </widget>
+     <widget class="QWidget" name="tab_3">
+      <attribute name="title">
+       <string>preferences_third_party_services</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_4">
+       <property name="spacing">
+        <number>12</number>
+       </property>
+       <property name="leftMargin">
+        <number>12</number>
+       </property>
+       <property name="topMargin">
+        <number>12</number>
+       </property>
+       <property name="rightMargin">
+        <number>12</number>
+       </property>
+       <property name="bottomMargin">
+        <number>12</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="label">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>preferences_third_party_description</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Maximum</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>12</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_6">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="title">
+          <string notr="true">AnkiHub</string>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <item>
+           <widget class="QLabel" name="syncAnkiHubUser">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="syncAnkiHubLogout">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>sync_log_out_button</string>
+            </property>
+            <property name="autoDefault">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="syncAnkiHubLogin">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>sync_log_in_button</string>
+            </property>
+            <property name="autoDefault">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalspacer_13">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
     </widget>
    </item>
    <item>
@@ -1093,6 +1281,7 @@
  <tabstops>
   <tabstop>lang</tabstop>
   <tabstop>video_driver</tabstop>
+  <tabstop>check_for_updates</tabstop>
   <tabstop>theme</tabstop>
   <tabstop>styleComboBox</tabstop>
   <tabstop>uiScale</tabstop>
@@ -1111,6 +1300,7 @@
   <tabstop>showProgress</tabstop>
   <tabstop>showEstimates</tabstop>
   <tabstop>spacebar_rates_card</tabstop>
+  <tabstop>render_latex</tabstop>
   <tabstop>pastePNG</tabstop>
   <tabstop>paste_strips_formatting</tabstop>
   <tabstop>useCurrent</tabstop>
@@ -1131,6 +1321,8 @@
   <tabstop>weekly_backups</tabstop>
   <tabstop>monthly_backups</tabstop>
   <tabstop>tabWidget</tabstop>
+  <tabstop>syncAnkiHubLogout</tabstop>
+  <tabstop>syncAnkiHubLogin</tabstop>
  </tabstops>
  <resources/>
  <connections>

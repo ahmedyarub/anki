@@ -9,12 +9,14 @@ import re
 import subprocess
 import sys
 import time
+import traceback
 import wave
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from concurrent.futures import Future
 from operator import itemgetter
 from pathlib import Path
-from typing import Any, Callable, cast
+from typing import Any, cast
 
 from markdown import markdown
 
@@ -306,7 +308,7 @@ class SimpleProcessPlayer(Player):  # pylint: disable=abstract-method
     def _play(self, tag: AVTag) -> None:
         assert isinstance(tag, SoundOrVideoTag)
         self._process = subprocess.Popen(
-            self.args + [tag.filename],
+            self.args + ["--", tag.filename],
             env=self.env,
             cwd=self._media_folder,
             stdout=subprocess.DEVNULL,
@@ -478,7 +480,7 @@ class SimpleMplayerSlaveModePlayer(SimpleMplayerPlayer):
         filename = hooks.media_file_filter(tag.filename)
 
         self._process = subprocess.Popen(
-            self.args + [filename],
+            self.args + ["--", filename],
             env=self.env,
             cwd=self.media_folder,
             stdin=subprocess.PIPE,

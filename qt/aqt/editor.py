@@ -9,14 +9,16 @@ import html
 import itertools
 import json
 import mimetypes
+import os
 import re
 import urllib.error
 import urllib.parse
 import urllib.request
 import warnings
+from collections.abc import Callable
 from enum import Enum
 from random import randrange
-from typing import Any, Callable, Match, cast
+from typing import Any, Match, cast
 
 import bs4
 import requests
@@ -59,7 +61,7 @@ from aqt.utils import (
 )
 from aqt.webview import AnkiWebView, AnkiWebViewKind
 
-pics = ("jpg", "jpeg", "png", "tif", "tiff", "gif", "svg", "webp", "ico", "avif")
+pics = ("jpg", "jpeg", "png", "gif", "svg", "webp", "ico", "avif")
 audio = (
     "3gp",
     "aac",
@@ -231,9 +233,9 @@ require("anki/ui").loaded.then(() => require("anki/NoteEditor").instances[0].too
         func: Callable[[Editor], None],
         tip: str = "",
         label: str = "",
-        id: str = None,
+        id: str | None = None,
         toggleable: bool = False,
-        keys: str = None,
+        keys: str | None = None,
         disables: bool = True,
         rightside: bool = True,
     ) -> str:
@@ -294,6 +296,8 @@ require("anki/ui").loaded.then(() => require("anki/NoteEditor").instances[0].too
         disables: bool = True,
         rightside: bool = True,
     ) -> str:
+        title_attribute = tip
+
         if icon:
             if icon.startswith("qrc:/"):
                 iconstr = icon
@@ -301,47 +305,35 @@ require("anki/ui").loaded.then(() => require("anki/NoteEditor").instances[0].too
                 iconstr = self.resourceToData(icon)
             else:
                 iconstr = f"/_anki/imgs/{icon}.png"
-            imgelm = f"""<img class="topbut" src="{iconstr}">"""
+            image_element = f'<img class="topbut" src="{iconstr}">'
         else:
-            imgelm = ""
-        if label or not imgelm:
-            labelelm = label or cmd
+            image_element = ""
+
+        if not label and icon:
+            label_element = ""
+        elif label:
+            label_element = label
         else:
-            labelelm = ""
-        if id:
-            idstr = f"id={id}"
-        else:
-            idstr = ""
-        if toggleable:
-            toggleScript = "toggleEditorButton(this);"
-        else:
-            toggleScript = ""
-        tip = shortcut(tip)
-        if rightside:
-            class_ = "linkb"
-        else:
-            class_ = "rounded"
+            label_element = cmd
+
+        title_attribute = shortcut(title_attribute)
+        cmd_to_toggle_button = "toggleEditorButton(this);" if toggleable else ""
+        id_attribute_assignment = f"id={id}" if id else ""
+        class_attribute = "linkb" if rightside else "rounded"
         if not disables:
-            class_ += " perm"
-        return """<button tabindex=-1
-                        {id}
-                        class="{class_}"
+            class_attribute += " perm"
+
+        return f"""<button tabindex=-1
+                        {id_attribute_assignment}
+                        class="{class_attribute}"
                         type="button"
-                        title="{tip}"
-                        onclick="pycmd('{cmd}');{togglesc}return false;"
+                        title="{title_attribute}"
+                        onclick="pycmd('{cmd}');{cmd_to_toggle_button}return false;"
                         onmousedown="window.event.preventDefault();"
                 >
-                    {imgelm}
-                    {labelelm}
-                </button>""".format(
-            imgelm=imgelm,
-            cmd=cmd,
-            tip=tip,
-            labelelm=labelelm,
-            id=idstr,
-            togglesc=toggleScript,
-            class_=class_,
-        )
+                    {image_element}
+                    {label_element}
+                </button>"""
 
     def setupShortcuts(self) -> None:
         # if a third element is provided, enable shortcut even when no field selected
@@ -1246,7 +1238,7 @@ require("anki/ui").loaded.then(() => require("anki/NoteEditor").instances[0].too
             highest += 1
         # must start at 1
         highest = max(1, highest)
-        self.web.eval("wrapCloze(%d);" % highest)
+        self.web.eval("wrap('{{c%d::', '}}');" % highest)
 
     def setupForegroundButton(self) -> None:
         self.fcolour = self.mw.pm.profile.get("lastColour", "#00f")
@@ -1441,6 +1433,16 @@ class EditorWebView(AnkiWebView):
     def onCopy(self) -> None:
         self.triggerPageAction(QWebEnginePage.WebAction.Copy)
 
+    def on_copy_image(self) -> None:
+        self.triggerPageAction(QWebEnginePage.WebAction.CopyImageToClipboard)
+
+    def _opened_context_menu_on_image(self) -> bool:
+        context_menu_request = self.lastContextMenuRequest()
+        return (
+            context_menu_request.mediaType()
+            == context_menu_request.MediaType.MediaTypeImage
+        )
+
     def _wantsExtendedPaste(self) -> bool:
         strip_html = self.editor.mw.col.get_config_bool(
             Config.Bool.PASTE_STRIPS_FORMATTING
@@ -1583,14 +1585,28 @@ class EditorWebView(AnkiWebView):
 
     def contextMenuEvent(self, evt: QContextMenuEvent) -> None:
         m = QMenu(self)
-        a = m.addAction(tr.editing_cut())
-        qconnect(a.triggered, self.onCut)
-        a = m.addAction(tr.actions_copy())
-        qconnect(a.triggered, self.onCopy)
+        self._maybe_add_cut_action(m)
+        self._maybe_add_copy_action(m)
         a = m.addAction(tr.editing_paste())
         qconnect(a.triggered, self.onPaste)
+        self._maybe_add_copy_image_action(m)
         gui_hooks.editor_will_show_context_menu(self, m)
         m.popup(QCursor.pos())
+
+    def _maybe_add_cut_action(self, menu: QMenu) -> None:
+        if self.hasSelection():
+            a = menu.addAction(tr.editing_cut())
+            qconnect(a.triggered, self.onCut)
+
+    def _maybe_add_copy_action(self, menu: QMenu) -> None:
+        if self.hasSelection():
+            a = menu.addAction(tr.actions_copy())
+            qconnect(a.triggered, self.onCopy)
+
+    def _maybe_add_copy_image_action(self, menu: QMenu) -> None:
+        if self._opened_context_menu_on_image():
+            a = menu.addAction(tr.editing_copy_image())
+            qconnect(a.triggered, self.on_copy_image)
 
 
 # QFont returns "Kozuka Gothic Pro L" but WebEngine expects "Kozuka Gothic Pro Light"

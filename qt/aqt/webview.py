@@ -5,10 +5,12 @@ from __future__ import annotations
 
 import dataclasses
 import json
+import os
 import re
 import sys
+from collections.abc import Callable, Sequence
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Callable, Optional, Sequence, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import anki
 import anki.lang
@@ -17,6 +19,7 @@ from anki.lang import is_rtl
 from anki.utils import hmr_mode, is_lin, is_mac, is_win
 from aqt import colors, gui_hooks
 from aqt.qt import *
+from aqt.qt import sip
 from aqt.theme import theme_manager
 from aqt.utils import askUser, is_gesture_or_zoom_event, openLink, showInfo, tr
 
@@ -376,10 +379,14 @@ class AnkiWebView(QWebEngineView):
 
     def contextMenuEvent(self, evt: QContextMenuEvent) -> None:
         m = QMenu(self)
-        a = m.addAction(tr.actions_copy())
-        qconnect(a.triggered, self.onCopy)
+        self._maybe_add_copy_action(m)
         gui_hooks.webview_will_show_context_menu(self, m)
         m.popup(QCursor.pos())
+
+    def _maybe_add_copy_action(self, menu: QMenu) -> None:
+        if self.hasSelection():
+            a = menu.addAction(tr.actions_copy())
+            qconnect(a.triggered, self.onCopy)
 
     def dropEvent(self, evt: QDropEvent) -> None:
         if self.allow_drops:
@@ -524,10 +531,10 @@ html {{ {font} }}
     def stdHtml(
         self,
         body: str,
-        css: Optional[list[str]] = None,
-        js: Optional[list[str]] = None,
+        css: list[str] | None = None,
+        js: list[str] | None = None,
         head: str = "",
-        context: Optional[Any] = None,
+        context: Any | None = None,
         default_css: bool = True,
     ) -> None:
         css = (["css/webview.css"] if default_css else []) + (
@@ -584,6 +591,8 @@ html {{ {font} }}
 {web_content.body}</body>
 </html>"""
         # print(html)
+        import aqt.browser.previewer
+        import aqt.clayout
         import aqt.editor
         import aqt.reviewer
         from aqt.mediasrv import PageContext
@@ -592,6 +601,10 @@ html {{ {font} }}
             page_context = PageContext.EDITOR
         elif isinstance(context, aqt.reviewer.Reviewer):
             page_context = PageContext.REVIEWER
+        elif isinstance(context, aqt.browser.previewer.Previewer):
+            page_context = PageContext.PREVIEWER
+        elif isinstance(context, aqt.clayout.CardLayout):
+            page_context = PageContext.CARD_LAYOUT
         else:
             page_context = PageContext.UNKNOWN
         self.setHtml(html, page_context)
@@ -699,7 +712,7 @@ html {{ {font} }}
     def adjustHeightToFit(self) -> None:
         self.evalWithCallback("document.documentElement.offsetHeight", self._onHeight)
 
-    def _onHeight(self, qvar: Optional[int]) -> None:
+    def _onHeight(self, qvar: int | None) -> None:
         from aqt import mw
 
         if qvar is None:
@@ -836,5 +849,5 @@ html {{ {font} }}
         )
 
     @deprecated(info="use theme_manager.qcolor() instead")
-    def get_window_bg_color(self, night_mode: Optional[bool] = None) -> QColor:
+    def get_window_bg_color(self, night_mode: bool | None = None) -> QColor:
         return theme_manager.qcolor(colors.CANVAS)

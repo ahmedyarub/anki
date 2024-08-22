@@ -8,10 +8,13 @@ import gc
 import os
 import re
 import signal
+import sys
+import traceback
 import weakref
 from argparse import Namespace
+from collections.abc import Callable, Sequence
 from concurrent.futures import Future
-from typing import Any, Literal, Sequence, TypeVar, cast
+from typing import Any, Literal, TypeVar, cast
 
 import anki
 import anki.cards
@@ -199,7 +202,7 @@ class AnkiQt(QMainWindow):
             self.setupUI()
             self.setupAddons(args)
             self.finish_ui_setup()
-        except:
+        except Exception:
             showInfo(tr.qt_misc_error_during_startup(val=traceback.format_exc()))
             sys.exit(1)
         # must call this after ui set up
@@ -350,7 +353,7 @@ class AnkiQt(QMainWindow):
         f.profiles.addItems(profs)
         try:
             idx = profs.index(self.pm.name)
-        except:
+        except Exception:
             idx = 0
         f.profiles.setCurrentRow(idx)
 
@@ -494,7 +497,6 @@ class AnkiQt(QMainWindow):
             else:
                 self.handleImport(self.pendingImport)
             self.pendingImport = None
-        gui_hooks.profile_did_open()
 
         def _onsuccess(synced: bool) -> None:
             if synced:
@@ -527,8 +529,8 @@ class AnkiQt(QMainWindow):
             )
 
         refresh_reviewer_on_day_rollover_change()
-
         self.maybe_auto_sync_on_open_close(_onsuccess)
+        gui_hooks.profile_did_open()
 
     def unloadProfile(self, onsuccess: Callable) -> None:
         def callback() -> None:
@@ -681,7 +683,7 @@ class AnkiQt(QMainWindow):
             self.maybeOptimize()
             if not dev_mode:
                 corrupt = self.col.db.scalar("pragma quick_check") != "ok"
-        except:
+        except Exception:
             corrupt = True
 
         try:
@@ -693,7 +695,7 @@ class AnkiQt(QMainWindow):
                         force=False,
                         wait_for_completion=False,
                     )
-                except:
+                except Exception:
                     print("backup on close failed")
             self.col.close(downgrade=False)
         except Exception as e:
@@ -860,8 +862,8 @@ class AnkiQt(QMainWindow):
     def requireReset(
         self,
         modal: bool = False,
-        reason: Any = None,
-        context: Any = None,
+        reason: Any | None = None,
+        context: Any | None = None,
     ) -> None:
         traceback.print_stack(file=sys.stdout)
         print("requireReset() is obsolete; please use CollectionOp()")
@@ -1071,16 +1073,13 @@ title="{}" {}>{}</button>""".format(
         else:
             after_sync(False)
 
-    def maybe_auto_sync_media(self) -> None:
-        if self.can_auto_sync():
-            return
-        # media_syncer takes care of media syncing preference check
-        self.media_syncer.start()
-
     def can_auto_sync(self) -> bool:
+        "True if syncing on startup/shutdown enabled."
+        return self._can_sync_unattended() and self.pm.auto_syncing_enabled()
+
+    def _can_sync_unattended(self) -> bool:
         return (
-            self.pm.auto_syncing_enabled()
-            and bool(self.pm.sync_auth())
+            bool(self.pm.sync_auth())
             and not self.safeMode
             and not self.restoring_backup
         )
@@ -1432,7 +1431,8 @@ title="{}" {}>{}</button>""".format(
     def setup_auto_update(self, _log: list[DownloadLogEntry]) -> None:
         from aqt.update import check_for_update
 
-        check_for_update()
+        if aqt.mw.pm.check_for_updates():
+            check_for_update()
 
     # Timers
     ##########################################################################
@@ -1441,7 +1441,9 @@ title="{}" {}>{}</button>""".format(
         # refresh decks every 10 minutes
         self.progress.timer(10 * 60 * 1000, self.onRefreshTimer, True, parent=self)
         # check media sync every 5 minutes
-        self.progress.timer(5 * 60 * 1000, self.on_autosync_timer, True, parent=self)
+        self.progress.timer(
+            5 * 60 * 1000, self.on_periodic_sync_timer, True, parent=self
+        )
         # periodic garbage collection
         self.progress.timer(
             15 * 60 * 1000, self.garbage_collect_now, True, False, parent=self
@@ -1463,13 +1465,16 @@ title="{}" {}>{}</button>""".format(
         elif self.state == "overview":
             self.overview.refresh()
 
-    def on_autosync_timer(self) -> None:
+    def on_periodic_sync_timer(self) -> None:
         elap = self.media_syncer.seconds_since_last_sync()
-        minutes = self.pm.auto_sync_media_minutes()
+        minutes = self.pm.periodic_sync_media_minutes()
         if not minutes:
             return
         if elap > minutes * 60:
-            self.maybe_auto_sync_media()
+            if not self._can_sync_unattended():
+                return
+            # media_syncer takes care of media syncing preference check
+            self.media_syncer.start(True)
 
     # Backups
     ##########################################################################
