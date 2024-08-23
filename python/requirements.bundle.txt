@@ -478,8 +478,8 @@ zipp==3.19.2 \
     #   importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
-pip==24.1.1 \
-    --hash=sha256:5aa64f65e1952733ee0a9a9b1f52496ebdb3f3077cc46f80a16d983b58d1180a \
+pip==24.2.0 \
+    --hash=sha256:2cd581cf58ab7fcfca4ce8efa6dcacd0de5bf8d0a3eb9ec927e07405f4d9e2a2 \
     --hash=sha256:efca15145a95e95c00608afeab66311d40bfb73bb2266a855befd705e6bb15a0
     # via
     #   -r requirements.base.txt

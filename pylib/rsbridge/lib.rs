@@ -36,7 +36,7 @@ fn syncserver() -> PyResult<()> {
 }
 
 #[pyfunction]
-fn open_backend(init_msg: &PyBytes) -> PyResult<Backend> {
+fn open_backend(init_msg: &Bound<PyBytes>) -> PyResult<Backend> {
     match init_backend(init_msg.as_bytes()) {
         Ok(backend) => Ok(Backend { backend }),
         Err(e) => Err(PyException::new_err(e)),
@@ -50,12 +50,12 @@ impl Backend {
         py: Python,
         service: u32,
         method: u32,
-        input: &PyBytes,
+        input: &Bound<PyBytes>,
     ) -> PyResult<PyObject> {
         let in_bytes = input.as_bytes();
         py.allow_threads(|| self.backend.run_service_method(service, method, in_bytes))
             .map(|out_bytes| {
-                let out_obj = PyBytes::new(py, &out_bytes);
+                let out_obj = PyBytes::new_bound(py, &out_bytes);
                 out_obj.into()
             })
             .map_err(BackendError::new_err)
@@ -63,7 +63,7 @@ impl Backend {
 
     /// This takes and returns JSON, due to Python's slow protobuf
     /// encoding/decoding.
-    fn db_command(&self, py: Python, input: &PyBytes) -> PyResult<PyObject> {
+    fn db_command(&self, py: Python, input: &Bound<PyBytes>) -> PyResult<PyObject> {
         let in_bytes = input.as_bytes();
         let out_res = py.allow_threads(|| {
             self.backend
@@ -71,7 +71,7 @@ impl Backend {
                 .map_err(BackendError::new_err)
         });
         let out_bytes = out_res?;
-        let out_obj = PyBytes::new(py, &out_bytes);
+        let out_obj = PyBytes::new_bound(py, &out_bytes);
         Ok(out_obj.into())
     }
 }
@@ -80,12 +80,12 @@ impl Backend {
 //////////////////////////////////
 
 #[pymodule]
-fn _rsbridge(_py: Python, m: &PyModule) -> PyResult<()> {
+fn _rsbridge(_py: Python, m: &Bound<PyModule>) -> PyResult<()> {
     m.add_class::<Backend>()?;
-    m.add_wrapped(wrap_pyfunction!(buildhash)).unwrap();
-    m.add_wrapped(wrap_pyfunction!(open_backend)).unwrap();
-    m.add_wrapped(wrap_pyfunction!(initialize_logging)).unwrap();
-    m.add_wrapped(wrap_pyfunction!(syncserver)).unwrap();
+    m.add_wrapped(wrap_pyfunction!(buildhash))?;
+    m.add_wrapped(wrap_pyfunction!(open_backend))?;
+    m.add_wrapped(wrap_pyfunction!(initialize_logging))?;
+    m.add_wrapped(wrap_pyfunction!(syncserver))?;
 
     Ok(())
 }

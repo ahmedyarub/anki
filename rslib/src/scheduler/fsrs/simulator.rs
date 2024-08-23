@@ -24,7 +24,7 @@ impl Collection {
             .get_revlog_entries_for_searched_cards_in_card_order()?;
         let cards = guard.col.storage.all_searched_cards()?;
         drop(guard);
-        let days_elapsed = self.timing_today().unwrap().days_elapsed as i32;
+        let days_elapsed = self.timing_today()?.days_elapsed as i32;
         let converted_cards = cards
             .into_iter()
             .filter(|c| c.queue != CardQueue::Suspended && c.queue != CardQueue::PreviewRepeat)
@@ -72,7 +72,7 @@ impl Collection {
             req.desired_retention,
             None,
             Some(converted_cards),
-        );
+        )?;
         Ok(SimulateFsrsReviewResponse {
             accumulated_knowledge_acquisition: accumulated_knowledge_acquisition.to_vec(),
             daily_review_count: daily_review_count.iter().map(|x| *x as u32).collect_vec(),
