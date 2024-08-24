@@ -1,1 +1,2 @@
 ..\out\pyenv\scripts\pip-compile --resolver=backtracking --allow-unsafe --no-header --strip-extras --generate-hashes requirements.win.in
+..\out\pyenv\scripts\pip-compile --resolver=backtracking --allow-unsafe --no-header --strip-extras --generate-hashes requirements.qt6_win.in
